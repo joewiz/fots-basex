@@ -79,7 +79,8 @@ declare function fots:run(
 
     for $set in $doc//test-set[starts-with(@name, $catalog)]
     let $href := $set/@file,
-        $doc := doc($path || "/" || $href)
+        $doc-uri := $path || "/" || $href,
+        $doc := doc($doc-uri)
 
     for $case in $doc//test-case[starts-with(@name, $prefix)]
     let $env := $env | $doc//environment,
@@ -92,7 +93,12 @@ declare function fots:run(
                 $rest and not($exclude($dep/@type, $dep/@value))
             }
         )
-    return fots:test($eval, $case, $map, $path, replace($href, '/.*','/'))
+    return
+        let $debug := util:log("info", ("doc-uri=" || $doc-uri))
+        return
+        
+        fots:test($eval, $case, $map, $path, replace($href, '/.*','/'))
+            
   }</failures>
 };
 
@@ -119,6 +125,9 @@ declare function fots:test(
       $query  := string-join(($prolog, $query), '&#xa;'),
       $result := 
         try {
+        
+          let $debug := util:log("info", ("query=" || $query))
+        
           let $res := $eval($query)
           return check:result($eval, $res, $case/result/*)
         } catch * {
@@ -134,6 +143,20 @@ declare function fots:wrong(
   $result as item()*,
   $query as xs:string
 ) as element(fots:test-case)? {
+  
+  (: TODO (AR) below is a pale hack, e.g. does not remove descendant::comment() :)
+  element fots:test-case {
+    $test/@*,
+    $test/child::node()[not(local-name(.) eq "description")],
+    <wrong>
+        <query>{ $query }</query>
+        {$result}
+    </wrong> 
+  }
+  
+  (: TODO (AR) original below :)
+  
+  (:
   copy $c := $test
   modify (
     insert node
@@ -145,4 +168,5 @@ declare function fots:wrong(
       delete nodes $c/descendant::comment()
     )
   return $c
+  :)
 };
