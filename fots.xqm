@@ -126,7 +126,7 @@ declare function fots:test(
       $result := 
         try {
         
-          let $debug := util:log("info", ("query=" || $query))
+          let $debug := util:log("info", ("name=" || $case/@name || " query=" || normalize-space($query)))
         
           let $res := $eval($query)
           return check:result($eval, $res, $case/result/*)
