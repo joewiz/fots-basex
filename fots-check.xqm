@@ -51,10 +51,10 @@ declare function check:error(
   $code   as xs:QName,
   $error  as xs:string?,
   $result as element()
-) as element()? {
+) as element()* {
   let $err := check:err($code, $error, $result)
   return if(empty($err)) then () else
-    <out>
+    $err ! <out>
       <result>Error: {string-join(('[', $code, ']', $error), ' ')}</result>
       <errors>{
         map(function($e){ <error>{$e}</error> }, $err)
@@ -127,7 +127,7 @@ declare function check:err(
 ) as xs:string* {
   let $error := $result/descendant-or-self::fots:error
   return
-    if(check:error-to-qname($error) eq $code) then ()
+    if(some $e in check:error-to-qname($error) satisfies $e eq $code) then ()
     else if(exists($error)) then (
       concat('Wrong error code [', $code, '] (', $err, '), expected: [',
           string-join($error/@code, '], ['), ']')
@@ -144,8 +144,9 @@ declare function check:err(
  : XPath/XQuery http://www.w3.org/2005/xqt-errors/
  :)
 declare %private function check:error-to-qname(
-    $error as element(fots:error)
-) as xs:QName {
+    $errors as element(fots:error)*
+) as xs:QName* {
+    for $error in $errors
     let $eq-or-nc := fn:analyze-string($error/@code, "(?:Q\{(.+)\}(.+))|([^:]+)")//fn:group
     return
         if($eq-or-nc[@nr eq "3"]) then
