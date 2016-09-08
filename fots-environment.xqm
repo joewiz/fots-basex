@@ -13,7 +13,7 @@ declare namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog";
 (:~ XQuery maps as proposed by M. Kay. :)
 declare namespace map  = "http://www.w3.org/2005/xpath-functions/map";
 (:~ EXPath file module for checking for the existence of files. :)
-declare namespace file = "http://expath.org/ns/file";
+(:declare namespace file = "http://expath.org/ns/file";:)
 
 (:~
  : Recursively resolves references between environments.
