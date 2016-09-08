@@ -22,7 +22,7 @@ declare default element namespace "http://www.w3.org/2010/09/qt-fots-catalog";
  : @return an element containing all failed tests
  :)
 declare function fots:run(
-  $eval as function(xs:string) as item()*,
+  $eval as function(xs:string, item()*) as item()*,
   $path as xs:string
 ) as element(fots:failures) {
   fots:run($eval, $path, function($name, $val) { true() }, '', '')
@@ -35,7 +35,7 @@ declare function fots:run(
  : @return an element containing all failed tests
  :)
 declare function fots:run(
-  $eval as function(xs:string) as item()*,
+  $eval as function(xs:string, item()*) as item()*,
   $path as xs:string,
   $exclude as function(xs:string, xs:string) as xs:boolean
 ) as element(fots:failures) {
@@ -50,7 +50,7 @@ declare function fots:run(
  : @return an element containing all failed tests
  :)
 declare function fots:run(
-  $eval as function(xs:string) as item()*,
+  $eval as function(xs:string, item()*) as item()*,
   $path as xs:string,
   $exclude as function(xs:string, xs:string) as xs:boolean,
   $catalog as xs:string
@@ -67,7 +67,7 @@ declare function fots:run(
  : @return an element containing all failed tests
  :)
 declare function fots:run(
-  $eval as function(xs:string) as item()*,
+  $eval as function(xs:string, item()*) as item()*,
   $path as xs:string,
   $exclude as function(xs:string, xs:string) as xs:boolean,
   $catalog as xs:string,
@@ -113,7 +113,7 @@ declare function fots:run(
  :   test-case element with additional information otherwise
  :)
 declare function fots:test(
-  $eval as function(xs:string) as item()*,
+  $eval as function(xs:string, item()*) as item()*,
   $case as element(fots:test-case),
   $map as map(*),
   $path as xs:string,
@@ -121,13 +121,16 @@ declare function fots:test(
 ) as element(fots:test-case)? {
   let $query  := $case/test/text(),
       $prolog := env:prolog($map, $path, $sub),
-      $query  := string-join(($prolog, $query), '&#xa;'),
+      $prolog-has-context := contains($prolog, 'declare context item'),
+      $context := if ($prolog-has-context) then replace($prolog, 'declare context item := (.*?);', '$1') else (),
+      $prolog-sans-context := if ($context) then replace($prolog, 'declare context item := .*?;', '') else $prolog,
+      $query  := string-join(($prolog-sans-context, $query), '&#xa;'),
       $result := 
         try {
         
           let $debug := util:log("info", ("name=" || $case/@name || " query=" || normalize-space($query)))
         
-          let $res := $eval($query)
+          let $res := $eval($query, $context)
           return check:result($eval, $res, $case/result/*)
         } catch * {
           check:error($err:code, $err:description, $case/result/*)

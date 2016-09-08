@@ -44,13 +44,17 @@ declare function local:exclude(
  : @return evaluation result
  :)
 declare function local:eval(
-  $query as xs:string
+  $query as xs:string,
+  $context as item()*
 ) as item()* {
-  util:eval(replace($query, '&#xD;', '&amp;#xD;'))
+    if ($context) then 
+      util:eval-inline($context, replace($query, '&#xD;', '&amp;#xD;'))
+  else
+      util:eval(replace($query, '&#xD;', '&amp;#xD;'))
 };
 
 fots:run(
-  local:eval#1,
+  local:eval#2,
   $path,
   local:exclude#2
 )
