@@ -120,7 +120,6 @@ declare function fots:test(
   $sub as xs:string
 ) as element(fots:test-case)? {
   let $query  := $case/test/text(),
-      $source := $map('source'),
       $prolog := env:prolog($map, $path, $sub),
       $query  := string-join(($prolog, $query), '&#xa;'),
       $result := 
