@@ -108,6 +108,7 @@ declare function check:res(
       return if(empty($res)) then () else 'Result is not empty.'
     case 'error'
       return concat('Expected Error [', $result/@code, ']')
+    (: known to be unimplemented: 'not', 'assert-xml', 'assert-serialization-error', 'serialization-matches' :)
     default return error(
       fn:QName('http://www.w3.org/2005/xqt-errors', 'FOTS9999'),
         concat('Unknown assertion: "', $test, '"'))
