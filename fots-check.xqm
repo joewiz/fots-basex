@@ -149,7 +149,9 @@ declare %private function check:error-to-qname(
     for $error in $errors
     let $eq-or-nc := fn:analyze-string($error/@code, "(?:Q\{(.+)\}(.+))|([^:]+)")//fn:group
     return
-        if($eq-or-nc[@nr eq "3"]) then
+        if($eq-or-nc[@nr eq "3"] eq "*") then
+            ()
+        else if($eq-or-nc[@nr eq "3"]) then
             QName("http://www.w3.org/2005/xqt-errors/", $eq-or-nc[@nr eq "3"]/text())
         else
             QName($eq-or-nc[@nr eq "1"]/text(), $eq-or-nc[@nr eq "2"]/text())
