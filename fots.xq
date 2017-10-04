@@ -23,9 +23,9 @@ declare function local:exclude(
   $val as xs:string
 ) as xs:boolean {
   let $map := map{
-      'feature':='namespace-axis',
-      'xml-version':='1.1',
-      'language':='de'
+      'feature': 'namespace-axis',
+      'xml-version': '1.1',
+      'language': 'de'
     }
   return $map($dep) = $val
     or $dep eq 'format-integer-sequence'
