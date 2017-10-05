@@ -49,9 +49,15 @@ declare function local:eval(
   util:eval($query (: => replace('&#xD;', '&amp;#xD;') :) )
 };
 
+let $login := xmldb:login('/db', 'admin', '')
 let $failures := 
 fots:run(
   local:eval#1,
   $path,
   local:exclude#2
 )
+return
+    (
+        (: $failures, :)
+        try { xmldb:store("/db", "fots-" || current-date() => adjust-date-to-timezone(()) || ".xml", $failures) } catch * { <error>couldn't store fots results in db</error> }
+    )
