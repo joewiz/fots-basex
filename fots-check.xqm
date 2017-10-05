@@ -139,7 +139,7 @@ declare function check:err(
  : EQName (Q{uri}local).
  :
  : If an NCName we assume the default err namespace for
- : XPath/XQuery http://www.w3.org/2005/xqt-errors/
+ : XPath/XQuery http://www.w3.org/2005/xqt-errors
  :)
 declare %private function check:error-to-qname(
     $errors as element(fots:error)*
@@ -150,7 +150,7 @@ declare %private function check:error-to-qname(
         if($eq-or-nc[@nr eq "3"] eq "*") then
             ()
         else if($eq-or-nc[@nr eq "3"]) then
-            QName("http://www.w3.org/2005/xqt-errors/", $eq-or-nc[@nr eq "3"]/text())
+            QName("http://www.w3.org/2005/xqt-errors", $eq-or-nc[@nr eq "3"]/text())
         else
             QName($eq-or-nc[@nr eq "1"]/text(), $eq-or-nc[@nr eq "2"]/text())
 };
