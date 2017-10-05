@@ -12,11 +12,8 @@ module namespace check = "http://www.w3.org/2010/09/qt-fots-catalog/check";
 (:~ Small utility module providing an implementation of typed pairs. :)
 import module namespace pair='http://www.basex.org/pair' at 'pair.xqm';
 
-(:~ Serialization module. :)
-import module namespace ser = 'http://www.basex.org/serialize'
-  at 'serialize.xqm';
-
 declare namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog";
+declare default element namespace "http://www.w3.org/2010/09/qt-fots-catalog";
 
 (:~
  : Checks the given against the expected result.
@@ -33,7 +30,7 @@ declare function check:result(
   let $err := check:res($eval, $res, $result)
   return if(empty($err)) then () else
     <out>
-      <result>{ser:serialize($res)}</result>
+      <result>{serialize($res, map { "method": "adaptive", "indent": "no" })}</result>
       <errors>{
         map(function($e){ <error>{$e}</error> }, $err)
       }</errors>
@@ -329,13 +326,7 @@ declare function check:assert-serialization(
   $result as element()
 ) {
   try {
-    let $ser := serialize(
-          ?,
-          <output:serialization-parameters xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization">
-            <output:method>xml</output:method>
-            <output:indent>no</output:indent>
-          </output:serialization-parameters>
-        ),
+    let $ser := serialize(?, map { "method": "xml", "indent": "no" }),
         $to-str := function($it) {
           if($it instance of node()) then $ser($it)
           else string($it)
