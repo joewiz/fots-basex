@@ -46,7 +46,7 @@ declare function local:exclude(
 declare function local:eval(
   $query as xs:string
 ) as item()* {
-  util:eval(replace($query, '&#xD;', '&amp;#xD;'))
+  util:eval($query (: => replace('&#xD;', '&amp;#xD;') :) )
 };
 
 let $failures := 
