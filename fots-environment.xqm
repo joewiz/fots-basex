@@ -63,6 +63,7 @@ declare function env:build(
       case 'static-base-uri' return xs:anyURI($env/@uri/data())
       case 'collation' return
         (xs:anyURI($env/@uri/data()), $env/@default = 'true')
+      (: TODO: collection isn't implemented in env:prolog... :)
       case 'collection' return
         map:new((
           $map($name),
@@ -74,7 +75,20 @@ declare function env:build(
           $map($name),
           map{$env/@name := xs:string($env/@xquery-location)}
         ))
+      (: TODO: source can take more than @file... :)
       case 'source' return xs:string($env/@file)
+      case 'param' return 
+        map:new((
+          $map($name),
+          map:entry(normalize-space($env/@name),
+            map:new(
+              for $att in $env/@*
+              let $name := local-name($att)
+              where $name ne 'name'
+              return map:entry($name, xs:string($att))
+            )
+          )
+        ))
       case 'decimal-format' return
         map:new((
           $map($name),
@@ -157,12 +171,19 @@ declare function env:prolog(
         where exists($coll) and $coll[2]
         return concat("declare default collation '", $coll[1], "';"),
 
+        (: assumes @role="." TODO: extend to point to other kinds of resource URIs. :)
         let $source := $map('source')
         where exists($source)
         return concat("declare context item := doc('",
           if(file:exists(string-join(($path, $source), '/')))
             then $path else $default-base,
         $source, "');"),
+        
+        (: TODO: add handling for @declared :)
+        let $params := $map('param')
+        for $name in env:keys($params)
+        let $attrs := $params($name)
+        return concat("declare variable $", $name, " as ", $attrs?as, " := ", $attrs?select, ";"),
 
         let $dfs := $map('decimal-format')
         for $k in env:keys($dfs)
