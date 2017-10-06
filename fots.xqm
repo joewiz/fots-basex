@@ -14,8 +14,6 @@ import module namespace env = "http://www.w3.org/2010/09/qt-fots-catalog/environ
 import module namespace check = "http://www.w3.org/2010/09/qt-fots-catalog/check"
   at 'fots-check.xqm';
 
-declare default element namespace "http://www.w3.org/2010/09/qt-fots-catalog";
-
 (:~
  : Loops throgh the test set and evaluates all test cases.
  : @param $path    - path to the FOTS catalog file
@@ -73,21 +71,21 @@ declare function fots:run(
   $catalog as xs:string,
   $prefix as xs:string
 ) as element(fots:failures) {
-  <failures>{
+  <failures xmlns="http://www.w3.org/2010/09/qt-fots-catalog">{
     let $doc := doc($path || '/catalog.xml'),
-        $env := $doc//environment
+        $env := $doc//fots:environment
 
-    for $set in $doc//test-set[starts-with(@name, $catalog)]
+    for $set in $doc//fots:test-set[starts-with(@name, $catalog)]
     let $href := $set/@file,
         $doc-uri := $path || "/" || $href,
         $doc := doc($doc-uri)
 
-    for $case in $doc//test-case[starts-with(@name, $prefix)]
-    let $env := $env | $doc//environment,
-        $map := env:environment($case/environment, $env)
+    for $case in $doc//fots:test-case[starts-with(@name, $prefix)]
+    let $env := $env | $doc//fots:environment,
+        $map := env:environment($case/fots:environment, $env)
     where not(map:contains($map, 'collation'))
         and fold-left(
-            $case/dependency,
+            $case/fots:dependency,
             true(),
             function($rest, $dep) {
                 $rest and not($exclude($dep/@type, $dep/@value))
@@ -95,6 +93,7 @@ declare function fots:run(
         )
     return
         let $debug := util:log("info", ("doc-uri=" || $doc-uri))
+        let $debug := util:log("info", ("map=" || serialize($map, map { "method": "adaptive" })))
         return
         
         fots:test($eval, $case, $map, $path, replace($href, '/.*','/'))
@@ -119,7 +118,7 @@ declare function fots:test(
   $path as xs:string,
   $sub as xs:string
 ) as element(fots:test-case)? {
-  let $query  := $case/test/text(),
+  let $query  := $case/fots:test/text(),
       $prolog := env:prolog($map, $path, $sub),
       $query  := string-join(($prolog, $query), '&#xa;'),
       $result := 
@@ -128,9 +127,9 @@ declare function fots:test(
           let $debug := util:log("info", ("name=" || $case/@name || " query=" || normalize-space($query)))
         
           let $res := $eval($query)
-          return check:result($eval, $res, $case/result/*)
+          return check:result($eval, $res, $case/fots:result/*)
         } catch * {
-          check:error($err:code, $err:description, $case/result/*)
+          check:error($err:code, $err:description, $case/fots:result/*)
         }
   return if(empty($result)) then ()
     else fots:wrong($case, $result, $query)
@@ -144,7 +143,7 @@ declare function fots:wrong(
 ) as element(fots:test-case)? {
   
   (: TODO (AR) below is a pale hack, e.g. does not remove descendant::comment() :)
-  element fots:test-case {
+  element { $test/node-name() } {
     $test/@*,
     $test/child::node()[not(local-name(.) eq "description")],
     <wrong>
