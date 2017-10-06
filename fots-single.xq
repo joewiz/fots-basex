@@ -7,9 +7,15 @@
  :)
 import module namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog"
   at 'fots.xqm';
+import module namespace env = "http://www.w3.org/2010/09/qt-fots-catalog/environment"
+    at "fots-environment.xqm";
+import module namespace check = "http://www.w3.org/2010/09/qt-fots-catalog/check"
+  at 'fots-check.xqm';
+
+declare default element namespace "http://www.w3.org/2010/09/qt-fots-catalog";
 
 (:~ Path to the test suite files. :)
-declare variable $path as xs:string := "file:/Users/joe/workspace/qt3/2011/QT3-test-suite";
+declare variable $path as xs:string := "file:/Users/joe/workspace/QT3TS";
 
 
 (:~
@@ -54,6 +60,30 @@ let $eval := local:eval#1,
     $case := $path,
     $exclude := local:exclude#2,
     $catalog := "prod-ArrowPostfix",
-    $sub := "ArrowPostfix"
+    $prefix := "ArrowPostfix-008"
+
+let $doc := doc($path || '/catalog.xml'),
+    $env := $doc//environment
+
+for $set in $doc//test-set[starts-with(@name, $catalog)]
+let $href := $set/@file,
+    $doc-uri := $path || "/" || $href,
+    $doc := doc($doc-uri)
+
+for $case in $doc//test-case[starts-with(@name, $prefix)]
+let $env := $env | $doc//environment,
+    $map := env:environment($case/environment, $env)
+where not(map:contains($map, 'collation'))
+    and fold-left(
+        $case/dependency,
+        true(),
+        function($rest, $dep) {
+            $rest and not($exclude($dep/@type, $dep/@value))
+        }
+    )
 return
-    fots:run($eval, $case, $exclude, $catalog, $sub)
+    (
+(:        check:result($eval, $eval($case/test/text()), $case/result/*):)
+    fots:test($eval, $case, $map, $path, replace($href, '/.*','/'))
+(:($eval, $case, $map, $path, replace($href, '/.*','/')):)
+    )
