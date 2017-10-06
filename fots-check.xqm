@@ -30,7 +30,7 @@ declare function check:result(
   let $err := check:res($eval, $res, $result)
   return if(empty($err)) then () else
     <out>
-      <result>{serialize($res, map { "method": "adaptive", "indent": "no" })}</result>
+      <result>{serialize($res, map { "method": "adaptive", "indent": false() })}</result>
       <errors>{
         map(function($e){ <error>{$e}</error> }, $err)
       }</errors>
