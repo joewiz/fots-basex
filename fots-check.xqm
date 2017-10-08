@@ -89,8 +89,8 @@ declare function check:res(
       return check:assert-bool($res, $result, false())
     case 'assert-deep-eq'
       return check:assert-deep-eq($eval, $res, $result)
-    case 'assert-serialization'
-      return check:assert-serialization($res, $result)
+    case 'assert-xml'
+      return check:assert-xml($res, $result)
     case 'assert-permutation'
       return check:assert-permutation($eval, $res, $result)
     case 'assert'
@@ -316,26 +316,26 @@ declare function check:assert-deep-eq(
 };
 
 (:~
- : Checks if the result serializes to the given string.
+ : Checks if the result serializes (as XML) to the given string.
  : @param $res result to be checked
  : @param $result expected result
  : @result possibly empty sequence of error descriptions
  :)
-declare function check:assert-serialization(
+declare function check:assert-xml(
   $res as item()*,
   $result as element()
 ) {
   try {
-    let $ser := serialize(?, map { "method": "xml", "indent": "no" }),
+    let $ser := serialize(?, map { "method": "xml", "indent": false() }),
         $to-str := function($it) {
           if($it instance of node()) then $ser($it)
           else string($it)
         },
         $act := string-join(map($to-str, $res), ' ')
     return if($act eq string($result)) then ()
-      else concat('Serialized result ''', $act, ''' not equal to ''', $result, '''.')
+      else concat('Serialized XML result ''', $act, ''' not equal to ''', $result, '''.')
   } catch * {
-    concat('Serialized comparison to ''', $result, ''' failed with: [',
+    concat('Serialized XML comparison to ''', $result, ''' failed with: [',
       $err:code, '] ', $err:description)
   }
 };
