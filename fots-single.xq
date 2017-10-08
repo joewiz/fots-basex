@@ -31,10 +31,10 @@ declare function local:exclude(
 ) as xs:boolean {
   let $map := map{
       'feature': 'namespace-axis',
-      'xml-version': '1.1',
-      'language': 'de'
+      'xml-version': '1.1'
     }
   return $map($dep) = $val
+  (:
     or $dep eq 'format-integer-sequence'
       and (
         try {
@@ -43,6 +43,7 @@ declare function local:exclude(
           true()
         }
       )
+  :)
 };
 
 (:~
@@ -59,8 +60,8 @@ declare function local:eval(
 let $eval := local:eval#1,
     $case := $path,
     $exclude := local:exclude#2,
-    $catalog := "prod-ArrowPostfix",
-    $prefix := "ArrowPostfix-008"
+    $catalog := "method-xml",
+    $prefix := "K2-Serialization-24"
 
 let $doc := doc($path || '/catalog.xml'),
     $env := $doc//environment
