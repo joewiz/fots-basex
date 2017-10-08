@@ -77,12 +77,16 @@ declare function check:res(
       return map(check:res($eval, $res, ?), $result/*)
     case 'any-of'
       return check:any-of($eval, $res, $result)
+    case 'not'
+      return check:not($eval, $res, $result/*)
     case 'assert-eq'
       return check:assert-eq($eval, $res, $result)
     case 'assert-type'
       return check:assert-type($eval, $res, $result)
     case 'assert-string-value'
       return check:assert-string-value($res, $result)
+    case 'serialization-matches'
+      return check:serialization-matches($res, $result)
     case 'assert-true'
       return check:assert-bool($res, $result, true())
     case 'assert-false'
@@ -103,9 +107,10 @@ declare function check:res(
           else concat('Expected ', $exp, ' items, found ', $count, '.')
     case 'assert-empty'
       return if(empty($res)) then () else 'Result is not empty.'
+    case 'assert-serialization-error'
+      return check:assert-serialization-error($res, $result/@code)
     case 'error'
       return concat('Expected Error [', $result/@code, ']')
-    (: known to be unimplemented: 'not', 'assert-xml', 'assert-serialization-error', 'serialization-matches' :)
     default return error(
       fn:QName('http://www.w3.org/2005/xqt-errors', 'FOTS9999'),
         concat('Unknown assertion: "', $test, '"'))
@@ -187,6 +192,24 @@ declare function check:any-of(
 };
 
 (:~
+ : Checks if the child assertion failed.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
+declare function check:not(
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
+  $result as element()
+) {
+  let $check := check:res($eval, $res, $result)
+  return
+    if (empty($check)) then 'Expected assertion to fail, but it succeeded'
+    else ()
+};
+
+(:~
  : Checks if the result is the given boolean value.
  : @param $eval implementation-dependent function for dynamic XQuery evaluation
  : @param $res result to be checked
@@ -224,6 +247,29 @@ declare function check:assert(
       ''' failed with: [', $err:code, '] ', $err:description)
   }
 };
+
+(:~
+ : Checks if the query can be executed without error, but serializing the result produces a serialization error.
+ : @param $res result to be checked
+ : @param $code expected serialization error code
+ : @result possibly empty sequence of error descriptions
+ :)
+declare function check:assert-serialization-error(
+  $res    as item()*,
+  $code   as xs:string
+) as xs:string* {
+  try {
+    let $ser := serialize($res)
+    return
+      concat('Expected serialization error [', $code, '] No error raised during serialization.')
+  } catch * {
+    let $code := QName("http://www.w3.org/2005/xqt-errors", $code)
+    return
+        if ($code eq $err:code) then ()
+        else concat('Expected serialization error [', $code, '] Got [', $err:code, '] ', $err:description)
+  }
+};
+
 
 (:~
  : Checks if the result has the given type.
@@ -284,11 +330,33 @@ declare function check:assert-string-value(
 ) as xs:string* {
   try {
     let $str := string-join(for $r in $res return string($r), " "),
-        $exp := xs:string($result)
+        $exp := if ($result/@normalize-space eq "true") then normalize-space($result) else xs:string($result)
     return if($str eq $exp) then ()
       else concat('Expected ''', $exp, ''', found ''', $str, '''.')
   } catch * {
     concat('String comparison to ', $result, ' failed with: [',
+      $err:code, '] ', $err:description)
+  }
+};
+
+(:~
+ : Checks if the result of serializing the query matches a given regular expression.
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
+declare function check:serialization-matches(
+  $res as item()*,
+  $result as element()
+) as xs:string* {
+  try {
+    let $str := string-join(for $r in $res return string($r), " "),
+        $exp := xs:string($result),
+        $flags := ($result/@flags, "")[1]
+    return if (matches($str, $exp, $flags)) then ()
+      else concat('Expected results to match regular expression ''', $exp, ''', but actual results were ''', $str, '''.')
+  } catch * {
+    concat('Regular expression match check to ', $result, ' failed with: [',
       $err:code, '] ', $err:description)
   }
 };
