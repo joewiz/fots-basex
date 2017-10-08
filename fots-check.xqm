@@ -354,7 +354,7 @@ declare function check:serialization-matches(
         $exp := xs:string($result),
         $flags := ($result/@flags, "")[1]
     return if (matches($str, $exp, $flags)) then ()
-      else concat('Expected results to match regular expression ''', $exp, ''', but actual results were ''', $str, '''.')
+      else concat('Results did not match regular expression ''', $exp, '''')
   } catch * {
     concat('Regular expression match check to ', $result, ' failed with: [',
       $err:code, '] ', $err:description)
