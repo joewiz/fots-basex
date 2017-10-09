@@ -16,6 +16,7 @@ All code is available under the *BSD license*.
 eXist edition
 -------------
 
+- Requires eXist develop branch as of Oct 9, 2017
 - Clone this repository, upload to `/db/apps/fots-basex`
 - Clone the QT3 test suite:`git clone https://github.com/LeoWoerteler/QT3TS.git`
 - Update `fots.xq` with path to QT3TS cloned directory: https://github.com/joewiz/fots-basex/blob/exist/fots.xq#L12 and with where results should be saved: https://github.com/joewiz/fots-basex/blob/exist/fots.xq#L78
