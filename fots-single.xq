@@ -54,7 +54,7 @@ declare function local:exclude(
 declare function local:eval(
   $query as xs:string
 ) as item()* {
-  util:eval(replace($query, '&#xD;', '&amp;#xD;'))
+  util:eval($query)
 };
 
 let $eval := local:eval#1,
