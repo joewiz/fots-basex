@@ -180,7 +180,7 @@ declare function env:prolog(
         where exists($source)
         return concat("declare context item := doc('",
           if(file:exists(string-join(($path, $source), '/')))
-            then $path else $default-base,
+            then $path else $default-base, "/", 
         $source, "');"),
         
         (: TODO: add handling for @declared :)
