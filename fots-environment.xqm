@@ -183,7 +183,7 @@ declare function env:prolog(
         let $params := $map('param')
         for $name in env:keys($params)
         let $attrs := $params($name)
-        return concat("declare variable $", $name, " as ", $attrs?as, " := ", $attrs?select, ";"),
+        return concat("declare variable $", $name, if ($attrs?as) then (" as ", $attrs?as) else (), " := ", $attrs?select, ";"),
 
         let $dfs := $map('decimal-format')
         for $k in env:keys($dfs)
