@@ -12,8 +12,6 @@ import module namespace env = "http://www.w3.org/2010/09/qt-fots-catalog/environ
 import module namespace check = "http://www.w3.org/2010/09/qt-fots-catalog/check"
   at 'fots-check.xqm';
 
-declare default element namespace "http://www.w3.org/2010/09/qt-fots-catalog";
-
 (:~ Path to the test suite files. :)
 declare variable $path as xs:string := "file:/Users/joe/workspace/QT3TS";
 
@@ -57,26 +55,27 @@ declare function local:eval(
   util:eval($query)
 };
 
+let $login := xmldb:login('/db', 'admin', '')
 let $eval := local:eval#1,
     $case := $path,
     $exclude := local:exclude#2,
-    $catalog := "method-xml",
-    $prefix := "K2-Serialization-24"
+    $catalog := "fn-data",
+    $prefix := "K2-DataFunc-6"
 
 let $doc := doc($path || '/catalog.xml'),
-    $env := $doc//environment
+    $env := $doc//fots:environment
 
-for $set in $doc//test-set[starts-with(@name, $catalog)]
+for $set in $doc//fots:test-set[starts-with(@name, $catalog)]
 let $href := $set/@file,
     $doc-uri := $path || "/" || $href,
     $doc := doc($doc-uri)
 
-for $case in $doc//test-case[starts-with(@name, $prefix)]
-let $env := $env | $doc//environment,
-    $map := env:environment($case/environment, $env)
+for $case in $doc//fots:test-case[starts-with(@name, $prefix)]
+let $env := $env | $doc//fots:environment,
+    $map := env:environment($case/fots:environment, $env)
 where not(map:contains($map, 'collation'))
     and fold-left(
-        $case/dependency,
+        $case/fots:dependency,
         true(),
         function($rest, $dep) {
             $rest and not($exclude($dep/@type, $dep/@value))
