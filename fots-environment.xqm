@@ -153,7 +153,11 @@ declare function env:prolog(
 
         let $ns := $map('namespace')
         for $k in env:keys($ns)
-        return concat('declare namespace ', $k, ' = "', $ns($k), '";'),
+        return 
+            if($k eq '') then 
+                concat('declare default element namespace "', $ns($k), '";')
+            else
+                concat('declare namespace ', $k, ' = "', $ns($k), '";'),
 
         let $lib := $map('function-library')
         for $k in env:keys($lib)
